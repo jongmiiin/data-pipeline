@@ -1,0 +1,32 @@
+[
+  {
+    "dataset": "weather",
+    "rows": 72,
+    "csv_write_s": 0.004365292144939303,
+    "csv_read_s": 0.004226749995723367,
+    "parquet_write_s": 0.034048791974782944,
+    "parquet_read_s": 0.03636749996803701,
+    "csv_bytes": 2007,
+    "parquet_bytes": 3532
+  },
+  {
+    "dataset": "country",
+    "rows": 1,
+    "csv_write_s": 0.00043325009755790234,
+    "csv_read_s": 0.00036416715011000633,
+    "parquet_write_s": 0.0008876251522451639,
+    "parquet_read_s": 0.0008235001005232334,
+    "csv_bytes": 141,
+    "parquet_bytes": 4899
+  },
+  {
+    "dataset": "ip",
+    "rows": 1,
+    "csv_write_s": 0.0002634169068187475,
+    "csv_read_s": 0.00028962502256035805,
+    "parquet_write_s": 0.00048608286306262016,
+    "parquet_read_s": 0.0005522081628441811,
+    "csv_bytes": 105,
+    "parquet_bytes": 4265
+  }
+]
