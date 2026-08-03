@@ -26,10 +26,12 @@ def benchmark_dataset(name: str, records: list[BaseModel]) -> dict:
     CSV_DIR.mkdir(parents=True, exist_ok=True)
     PARQUET_DIR.mkdir(parents=True, exist_ok=True)
 
+    # Pydantic 모델 리스트 -> dict 리스트 -> DataFrame 순으로 변환
     df = pd.DataFrame([r.model_dump() for r in records])
     csv_path = CSV_DIR / f"{name}.csv"
     parquet_path = PARQUET_DIR / f"{name}.parquet"
 
+    # 쓰기 먼저, 그다음 방금 쓴 파일을 다시 읽어서 읽기 시간까지 함께 측정한다.
     _, csv_write_s = _timed(df.to_csv, csv_path, index=False)
     _, csv_read_s = _timed(pd.read_csv, csv_path)
     _, parquet_write_s = _timed(df.to_parquet, parquet_path, index=False)
@@ -49,6 +51,7 @@ def benchmark_dataset(name: str, records: list[BaseModel]) -> dict:
 
 def run_all_benchmarks(datasets: dict[str, list[BaseModel]]) -> pd.DataFrame:
     """데이터셋별 벤치마크 결과를 하나의 요약 DataFrame으로 모은다."""
+    # records가 빈 리스트인 데이터셋(검증 전부 실패 등)은 저장할 게 없으니 건너뛴다.
     rows = [benchmark_dataset(name, records) for name, records in datasets.items() if records]
     return pd.DataFrame(rows)
 
@@ -75,6 +78,7 @@ def _comparison_sentence(row: pd.Series) -> str:
 
 def report(summary_df: pd.DataFrame) -> None:
     """성능 비교 결과를 콘솔 표 + 비교 문장으로 출력하고 JSON으로도 저장한다."""
+    # 3개 소스 모두 검증에 실패해 datasets가 전부 비어 있으면 여기로 온다.
     if summary_df.empty:
         print("저장할 유효 데이터셋이 없어 성능 비교를 생략합니다.")
         return

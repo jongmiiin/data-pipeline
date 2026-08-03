@@ -20,9 +20,11 @@ async def _fetch_json(client: httpx.AsyncClient, source: str, url: str) -> dict:
     """URL을 GET하고 상태코드를 확인한 뒤 JSON을 반환한다. 실패 시 CollectionError로 래핑."""
     try:
         response = await client.get(url)
-        response.raise_for_status()
+        response.raise_for_status()  # 4xx/5xx면 HTTPStatusError를 던지게 함
         return response.json()
     except (httpx.HTTPStatusError, httpx.RequestError) as exc:
+        # 상태코드 오류(HTTPStatusError)와 연결/타임아웃 오류(RequestError)를 모두
+        # 잡아서, 어떤 소스(source)에서 실패했는지 알 수 있게 CollectionError로 다시 감싼다.
         raise CollectionError(source, exc) from exc
 
 
@@ -52,12 +54,15 @@ async def collect_all() -> dict[str, dict | Exception]:
     요청이 취소되지 않고 계속 진행되도록 한다. 실패한 소스는 값으로 예외 객체를
     담아 반환하므로 호출부에서 소스별로 성공/실패를 구분해 처리할 수 있다.
     """
+    # 클라이언트 하나를 3개 요청이 공유해 커넥션을 재사용한다.
     async with httpx.AsyncClient(timeout=HTTP_TIMEOUT_SECONDS) as client:
         sources = ("weather", "country", "ip")
+        # gather에 넘긴 순서와 sources 순서가 같으므로, 아래 zip으로 그대로 짝지을 수 있다.
         results = await asyncio.gather(
             fetch_weather(client),
             fetch_country(client),
             fetch_ip_info(client),
             return_exceptions=True,
         )
+    # 예: {"weather": {...}, "country": {...}, "ip": CollectionError(...)}
     return dict(zip(sources, results, strict=True))
