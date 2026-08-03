@@ -14,6 +14,7 @@ class WeatherRecord(BaseModel):
 
     time: datetime
     temperature_2m: float
+    # 확률(%) 값이라 0~100 범위를 벗어나면 API가 이상한 값을 준 것으로 보고 걸러낸다.
     precipitation_probability: int = Field(ge=0, le=100)
 
 
@@ -30,8 +31,9 @@ class CountryInfo(BaseModel):
     name: str
     capital: str
     region: str
-    population: int = Field(ge=0)
+    population: int = Field(ge=0)  # 인구/면적이 음수면 명백히 잘못된 데이터
     area: float = Field(ge=0)
+    # ISO 3166-1 alpha-2/alpha-3 코드는 길이가 고정이라 min/max_length로 형식까지 검증
     alpha2_code: str = Field(alias="alpha2Code", min_length=2, max_length=2)
     alpha3_code: str = Field(alias="alpha3Code", min_length=3, max_length=3)
     native_name: str | None = Field(default=None, alias="nativeName")
@@ -47,7 +49,7 @@ class IPInfo(BaseModel):
     country: str
     region_name: str = Field(alias="regionName")
     city: str
-    lat: float = Field(ge=-90, le=90)
+    lat: float = Field(ge=-90, le=90)  # 위도/경도의 물리적으로 가능한 범위
     lon: float = Field(ge=-180, le=180)
 
     @model_validator(mode="after")
@@ -73,6 +75,8 @@ def validate_batch(
         try:
             valid.append(model_cls(**item))
         except ValidationError as exc:
+            # 실패한 레코드는 건너뛰고 계속 진행한다 — 여기서 raise하면
+            # weather의 나머지 71개 정상 레코드까지 전부 버려지게 된다.
             errors.append({"index": i, "errors": exc.errors()})
             logger.warning("%s[%d] 검증 실패: %s", model_cls.__name__, i, exc.errors())
     return valid, errors

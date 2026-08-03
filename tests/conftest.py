@@ -5,6 +5,7 @@ import pytest
 
 @pytest.fixture
 def valid_weather_raw() -> dict:
+    """Open-Meteo hourly 배열에서 한 시간대만 꺼낸 형태."""
     return {
         "time": "2026-08-03T00:00",
         "temperature_2m": 25.3,
@@ -14,6 +15,7 @@ def valid_weather_raw() -> dict:
 
 @pytest.fixture
 def valid_country_raw() -> dict:
+    """countries.dev/alpha/KOR 실제 응답 형태(camelCase 필드 포함)를 그대로 모사."""
     return {
         "name": "Korea (Republic of)",
         "capital": "Seoul",
@@ -28,6 +30,7 @@ def valid_country_raw() -> dict:
 
 @pytest.fixture
 def valid_ip_raw() -> dict:
+    """ip-api.com/json/8.8.8.8 실제 응답에서 우리가 쓰는 필드만 추린 형태."""
     return {
         "status": "success",
         "query": "8.8.8.8",
